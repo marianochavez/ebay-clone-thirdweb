@@ -1,4 +1,4 @@
-import {NFT, NATIVE_TOKENS, NATIVE_TOKEN_ADDRESS} from "@thirdweb-dev/sdk";
+import {NFT, NATIVE_TOKEN_ADDRESS} from "@thirdweb-dev/sdk";
 import React, {useState} from "react";
 import {
   MediaRenderer,
@@ -10,10 +10,11 @@ import {
   useNetworkMismatch,
   useOwnedNFTs,
 } from "@thirdweb-dev/react";
-import Router, {useRouter} from "next/router";
+import {useRouter} from "next/router";
+import Head from "next/head";
 
-import Header from "../components/Header";
 import network from "../utils/network";
+import Loading from "../components/Loading";
 
 type Props = {};
 
@@ -30,7 +31,7 @@ function CreatePage({}: Props) {
     "nft-collection",
   );
 
-  const ownedNfts = useOwnedNFTs(collectionContract, address);
+  const ownedNfts = useOwnedNFTs(collectionContract, address || "");
   const networkMismatch = useNetworkMismatch();
   const [, switchNetwork] = useNetwork();
 
@@ -84,7 +85,7 @@ function CreatePage({}: Props) {
           startTimestamp: new Date(),
         },
         {
-          onSettled(data, variables, context) {
+          onSuccess(data, variables, context) {
             // eslint-disable-next-line no-console
             console.log("SUCCESS", data, variables, context);
             router.push("/");
@@ -126,62 +127,81 @@ function CreatePage({}: Props) {
 
   return (
     <div>
-      <Header />
-
-      <main className="max-w-6xl mx-auto p-10 pt-2">
-        <h1 className="text-4xl font-bold">List an Item</h1>
-        <h2 className="text-xl font-semibold pt-5">Select an Item you would like to Sell</h2>
-
-        <hr className="pb-5" />
-
-        <p>Below you will find the NFT&apos;s you own in your wallet</p>
-
-        <div className="flex overflow-x-scroll space-x-2 p-4">
-          {ownedNfts?.data?.map((nft) => (
-            <div
-              key={nft.metadata.id}
-              className={`flex flex-col space-y-2 card min-w-fit border-2 bg-gray-100 ${
-                nft.metadata.id === selectedNft?.metadata.id ? "border-black" : "border-transparent"
-              } `}
-              onClick={() => setSelectedNft(nft)}
-            >
-              <MediaRenderer className="h-48 rounded-lg" src={nft.metadata.image} />
-              <p className="text-lg truncate font-bold">{nft.metadata.name}</p>
-              <p className="text-xs truncate">{nft.metadata.description}</p>
-            </div>
-          ))}
+      <Head>
+        <title>List Item</title>
+      </Head>
+      {!address ? (
+        <div className="flex items-center justify-center">
+          <Loading />
         </div>
+      ) : (
+        <div className="max-w-6xl mx-auto p-10 pt-2">
+          <h1 className="text-4xl font-bold">List an Item</h1>
+          <h2 className="text-xl font-semibold pt-5">Select an Item you would like to Sell</h2>
 
-        {selectedNft && (
-          <form onSubmit={handleCreateListing}>
-            <div className="flex flex-col p-10">
-              <div className=" grid grid-cols-2 gap-5">
-                <label className="border-r font-light">Direct Listing / Fixed Price</label>
-                <input
-                  className="ml-auto h-10 w-10"
-                  name="listingType"
-                  type="radio"
-                  value="directListing"
-                />
+          <hr className="pb-5" />
 
-                <label className="border-r font-light">Auction</label>
-                <input
-                  className="ml-auto h-10 w-10"
-                  name="listingType"
-                  type="radio"
-                  value="auctionListing"
-                />
+          <p>Below you will find the NFT&apos;s you own in your wallet</p>
 
-                <label className="border-r font-light">Price</label>
-                <input className="bg-gray-100 p-5" name="price" placeholder="0.05" type="text" />
+          <div className="flex overflow-x-scroll space-x-2 p-4">
+            {ownedNfts?.data?.map((nft) => (
+              <div
+                key={nft.metadata.id}
+                className={`flex flex-col space-y-2 card min-w-fit border-2 bg-gray-100 ${
+                  nft.metadata.id === selectedNft?.metadata.id
+                    ? "border-black"
+                    : "border-transparent"
+                } `}
+                onClick={() => setSelectedNft(nft)}
+              >
+                <MediaRenderer className="h-48 rounded-lg" src={nft.metadata.image} />
+                <p className="text-lg truncate font-bold">{nft.metadata.name}</p>
+                <p className="text-xs line-clamp-2 w-48">{nft.metadata.description}</p>
               </div>
-              <button className="bg-blue-600 text-white rounded-lg p-4 mt-8" type="submit">
-                Create Listing
-              </button>
-            </div>
-          </form>
-        )}
-      </main>
+            ))}
+          </div>
+
+          {selectedNft && (
+            <form onSubmit={handleCreateListing}>
+              <div className="flex flex-col p-10">
+                <div className=" grid grid-cols-2 gap-5">
+                  <label className="border-r font-light">Direct Listing / Fixed Price</label>
+                  <input
+                    className="ml-auto h-10 w-10"
+                    name="listingType"
+                    type="radio"
+                    value="directListing"
+                  />
+
+                  <label className="border-r font-light">Auction</label>
+                  <input
+                    className="ml-auto h-10 w-10"
+                    name="listingType"
+                    type="radio"
+                    value="auctionListing"
+                  />
+
+                  <label className="border-r font-light">Price</label>
+                  <input className="bg-gray-100 p-5" name="price" placeholder="0.05" type="text" />
+                </div>
+                <button
+                  className="flex justify-center bg-blue-600 text-white rounded-lg p-4 mt-8"
+                  disabled={isLoadingAuction || isLoadingDirect}
+                  type="submit"
+                >
+                  {isLoadingAuction || isLoadingDirect ? (
+                    <Loading text="Processing..." textColor="text-white" />
+                  ) : errorAuction || errorDirect ? (
+                    "Error, try again!"
+                  ) : (
+                    "Create Listing"
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
     </div>
   );
 }

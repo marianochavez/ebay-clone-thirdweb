@@ -1,20 +1,24 @@
 import {BanknotesIcon, ClockIcon} from "@heroicons/react/24/outline";
 import {MediaRenderer, useActiveListings, useContract} from "@thirdweb-dev/react";
 import {ListingType} from "@thirdweb-dev/sdk";
+import Head from "next/head";
 
-import Header from "../components/Header";
+import Loading from "../components/Loading";
 
 export default function HomePage() {
   const {contract} = useContract(process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT, "marketplace");
   const {data: listings, isLoading: loadingListings} = useActiveListings(contract);
 
   return (
-    <div className="">
-      <Header />
-
-      <main className="max-w-6xl mx-auto py-2 px-6">
+    <div>
+      <Head>
+        <title>Ebay Thirdweb</title>
+      </Head>
+      <div className="max-w-6xl mx-auto py-2 px-6">
         {loadingListings ? (
-          <p className="text-center animate-pulse text-blue-500 ">Loading listings...</p>
+          <div className="flex items-center justify-center">
+            <Loading text="Loading Listing..." />
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mx-auto">
             {listings?.map((listing) => (
@@ -59,7 +63,7 @@ export default function HomePage() {
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

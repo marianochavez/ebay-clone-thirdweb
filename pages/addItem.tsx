@@ -2,8 +2,9 @@ import React, {useState} from "react";
 import {useAddress, useContract} from "@thirdweb-dev/react";
 import Image from "next/image";
 import {useRouter} from "next/router";
+import Head from "next/head";
 
-import Header from "../components/Header";
+import Loading from "../components/Loading";
 
 type Props = {};
 
@@ -12,6 +13,12 @@ function AddItemPage({}: Props) {
   const address = useAddress();
   const [preview, setPreview] = useState<string>();
   const [image, setImage] = useState<File>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [addButton, setAddButton] = useState<{success: boolean; msg: string; bgColor: string}>({
+    success: false,
+    msg: "Add/Mint Item",
+    bgColor: "bg-blue-600",
+  });
 
   const {contract} = useContract(process.env.NEXT_PUBLIC_COLLECTION_CONTRACT, "nft-collection");
 
@@ -29,6 +36,8 @@ function AddItemPage({}: Props) {
 
       return;
     }
+
+    setIsLoading(true);
 
     const target = e.target as typeof e.target & {
       name: {value: string};
@@ -49,20 +58,30 @@ function AddItemPage({}: Props) {
       const tokenId = tx.id; // the id of the NFT minted
       const nft = await tx.data(); // (optional) fetch details of minted NFT
 
+      setIsLoading(false);
+      setAddButton({success: true, msg: "Item minted!", bgColor: "bg-green-500"});
       // eslint-disable-next-line no-console
       console.log(receipt, tokenId, nft);
-      router.push("/");
+      setTimeout(() => {
+        router.push("/");
+      }, 3000);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
+      setAddButton({success: false, msg: "Error, try again!", bgColor: "bg-red-500"});
+      setTimeout(() => {
+        setAddButton({success: false, msg: "Add/Mint Item", bgColor: "bg-blue-600"});
+      }, 4000);
+      setIsLoading(false);
     }
   }
 
   return (
     <div>
-      <Header />
-
-      <main className="max-w-6xl mx-auto p-10 border">
+      <Head>
+        <title>Add Item</title>
+      </Head>
+      <div className="max-w-6xl mx-auto p-10 border">
         <h1 className="text-4xl font-bold">Add an Item to the Marketplace</h1>
         <h2 className="text-xl font-semibold pt-5">Item Details</h2>
         <p className="pb-5">
@@ -113,14 +132,15 @@ function AddItemPage({}: Props) {
             />
 
             <button
-              className="bg-blue-600 font-bold text-white rounded-full py-4 px-10 w-56 md:mt-auto mx-auto md:ml-auto"
+              className={`${addButton.bgColor} font-bold text-white rounded-full py-4 px-10 w-56 md:mt-auto mx-auto md:ml-auto`}
+              disabled={isLoading || addButton.success}
               type="submit"
             >
-              Add/Mint Item
+              {isLoading ? <Loading text="Processing..." textColor="text-white" /> : addButton.msg}
             </button>
           </form>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
