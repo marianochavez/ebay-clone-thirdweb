@@ -4,7 +4,7 @@ import {ListingType} from "@thirdweb-dev/sdk";
 
 import Header from "../components/Header";
 
-export default function Home() {
+export default function HomePage() {
   const {contract} = useContract(process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT, "marketplace");
   const {data: listings, isLoading: loadingListings} = useActiveListings(contract);
 
