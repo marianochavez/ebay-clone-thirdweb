@@ -135,7 +135,7 @@ function CreatePage({}: Props) {
           <Loading />
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto p-10 pt-2">
+        <div className="p-10 pt-2">
           <h1 className="text-4xl font-bold">List an Item</h1>
           <h2 className="text-xl font-semibold pt-5">Select an Item you would like to Sell</h2>
 

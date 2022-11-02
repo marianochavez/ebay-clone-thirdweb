@@ -81,7 +81,7 @@ function AddItemPage({}: Props) {
       <Head>
         <title>Add Item</title>
       </Head>
-      <div className="max-w-6xl mx-auto p-10 border">
+      <div className="p-10 border">
         <h1 className="text-4xl font-bold">Add an Item to the Marketplace</h1>
         <h2 className="text-xl font-semibold pt-5">Item Details</h2>
         <p className="pb-5">

@@ -8,7 +8,7 @@ type Props = {
 
 const Layout = ({children}: Props) => {
   return (
-    <div>
+    <div className="max-w-6xl mx-auto">
       <Header />
       <main>{children}</main>
     </div>

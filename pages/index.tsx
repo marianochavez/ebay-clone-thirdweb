@@ -2,10 +2,12 @@ import {BanknotesIcon, ClockIcon} from "@heroicons/react/24/outline";
 import {MediaRenderer, useActiveListings, useContract} from "@thirdweb-dev/react";
 import {ListingType} from "@thirdweb-dev/sdk";
 import Head from "next/head";
+import {useRouter} from "next/router";
 
 import Loading from "../components/Loading";
 
 export default function HomePage() {
+  const router = useRouter();
   const {contract} = useContract(process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT, "marketplace");
   const {data: listings, isLoading: loadingListings} = useActiveListings(contract);
 
@@ -14,7 +16,7 @@ export default function HomePage() {
       <Head>
         <title>Ebay Thirdweb</title>
       </Head>
-      <div className="max-w-6xl mx-auto py-2 px-6">
+      <div className="py-2 px-6">
         {loadingListings ? (
           <div className="flex items-center justify-center">
             <Loading text="Loading Listing..." />
@@ -25,6 +27,7 @@ export default function HomePage() {
               <div
                 key={listing.id}
                 className="flex flex-col card hover:scale-105 transition-all duration-150 ease-out"
+                onClick={() => router.push(`/listing/${listing.id}`)}
               >
                 <div className="flex-1 flex flex-col pb-2 items-center">
                   <MediaRenderer className="w-44" src={listing.asset.image} />
