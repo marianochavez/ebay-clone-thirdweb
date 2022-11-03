@@ -21,7 +21,7 @@ function Header({}: Props) {
       <nav className="flex justify-between p-2">
         <div className="flex items-center space-x-2 text-sm">
           {address ? (
-            <button className="connectWalletBtn" onClick={disconnect}>
+            <button className="connectWalletBtn bg-green-600" onClick={disconnect}>
               Hi, {address.slice(0, 4) + "..." + address.slice(-4)}
             </button>
           ) : (
@@ -39,7 +39,7 @@ function Header({}: Props) {
           <p className="headerLink">Sell</p>
           <p className="headerLink">Watchlist</p>
 
-          <Link className="flex items-center hover:link" href="/addItem">
+          <Link className="flex items-center text-blue-500 hover:link" href="/addItem">
             Add to inventory
             <ChevronDownIcon className="h-4" />
           </Link>

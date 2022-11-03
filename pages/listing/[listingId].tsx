@@ -9,26 +9,33 @@ import {
   useListing,
   useMakeBid,
   useMakeOffer,
-  useNetwork,
-  useNetworkMismatch,
   useOffers,
 } from "@thirdweb-dev/react";
-import {ListingType, NATIVE_TOKENS} from "@thirdweb-dev/sdk";
+import {
+  AuctionListing,
+  DirectListing,
+  ListingType,
+  Marketplace,
+  NATIVE_TOKENS,
+} from "@thirdweb-dev/sdk";
 import {UserCircleIcon} from "@heroicons/react/24/solid";
 import {useEffect, useState} from "react";
 import Countdown from "react-countdown";
 import {ethers} from "ethers";
+import {toast, Toaster} from "react-hot-toast";
 
 import Loading from "../../components/Loading";
 import network from "../../utils/network";
+import useVerifyNetwork from "../../hooks/useVerifyNetwork";
+import {redirect} from "../../utils/redirect";
+import BuyNFT from "../../components/BuyNFT";
 
 function ListingPage() {
   const router = useRouter();
   const address = useAddress();
   const {listingId} = router.query as {listingId: string};
   const [bidAmount, setBidAmount] = useState("");
-  const [, switchNetwork] = useNetwork();
-  const networkMismatch = useNetworkMismatch();
+  const checkNetwork = useVerifyNetwork({network});
 
   const [minimumNextBid, setMinimumNextBid] = useState<{
     displayValue: string;
@@ -45,8 +52,6 @@ function ListingPage() {
   const {data: offers} = useOffers(marketplaceContract, listingId);
 
   const {mutate: makeOffer} = useMakeOffer(marketplaceContract);
-
-  const {mutate: buyNow} = useBuyNow(marketplaceContract);
 
   const {data: listing, isLoading, error} = useListing(marketplaceContract, listingId);
 
@@ -85,12 +90,7 @@ function ListingPage() {
 
   const createBidOrOffer = async () => {
     try {
-      if (networkMismatch) {
-        // TODO create export fn
-        switchNetwork && switchNetwork(network);
-
-        return;
-      }
+      checkNetwork();
 
       // Direct Listing
       if (listing?.type === ListingType.Direct) {
@@ -146,36 +146,6 @@ function ListingPage() {
     }
   };
 
-  const buyNft = async () => {
-    if (networkMismatch) {
-      // TODO create export fn
-      switchNetwork && switchNetwork(network);
-
-      return;
-    }
-
-    if (!listing || !marketplaceContract) return;
-
-    await buyNow(
-      {
-        id: listing.id,
-        buyAmount: 1,
-        type: listing.type,
-      },
-      {
-        onSuccess(data, variables, context) {
-          alert("NFT bought successfully!");
-          console.log("SUCCESS", data, variables, context);
-          router.replace("/");
-        },
-        onError(error, variables, context) {
-          alert("ERROR: NFT could not be bought");
-          console.log("ERROR", error, variables, context);
-        },
-      },
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center py-2">
@@ -205,23 +175,7 @@ function ListingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 items-center py-2">
-          <p className="font-bold">Listing Type:</p>
-          <p>{listing.type === ListingType.Direct ? "Direct Listing" : "Auction Listing"}</p>
-
-          <p className="font-bold ">Buy it Now Price</p>
-          <p className="text-4xl font-bold">
-            {listing.buyoutCurrencyValuePerToken.displayValue}{" "}
-            {listing.buyoutCurrencyValuePerToken.symbol}
-          </p>
-
-          <button
-            className="col-start-2 mt-2 bg-blue-600 font-bold text-white rounded-full w-44 py-4 px-10"
-            onClick={buyNft}
-          >
-            Buy Now
-          </button>
-        </div>
+        <BuyNFT contract={marketplaceContract} listing={listing} />
 
         {/* If DIRECT, show offers here... */}
         {listing.type === ListingType.Direct && offers && (
@@ -273,6 +227,7 @@ function ListingPage() {
           </div>
         )}
 
+        {/* Make an OFFER  */}
         <div className="grid grid-cols-2 space-y-2 items-center justify-end">
           <hr className="col-span-2" />
           <p className="col-span-2 font-bold">
@@ -305,6 +260,7 @@ function ListingPage() {
             {listing.type === ListingType.Direct ? "Offer" : "Bid"}
           </button>
         </div>
+        <Toaster />
       </section>
     </div>
   );

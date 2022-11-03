@@ -1,25 +1,25 @@
-import {NFT, NATIVE_TOKEN_ADDRESS} from "@thirdweb-dev/sdk";
 import React, {useState} from "react";
+import {NFT, NATIVE_TOKEN_ADDRESS} from "@thirdweb-dev/sdk";
 import {
   MediaRenderer,
   useAddress,
   useContract,
   useCreateAuctionListing,
   useCreateDirectListing,
-  useNetwork,
-  useNetworkMismatch,
   useOwnedNFTs,
 } from "@thirdweb-dev/react";
-import {useRouter} from "next/router";
 import Head from "next/head";
+import Link from "next/link";
+import {toast, Toaster} from "react-hot-toast";
 
 import network from "../utils/network";
 import Loading from "../components/Loading";
+import useVerifyNetwork from "../hooks/useVerifyNetwork";
+import {redirect} from "../utils/redirect";
 
 type Props = {};
 
 function CreatePage({}: Props) {
-  const router = useRouter();
   const address = useAddress();
   const [selectedNft, setSelectedNft] = useState<NFT>();
   const {contract: marketplaceContract} = useContract(
@@ -31,36 +31,40 @@ function CreatePage({}: Props) {
     "nft-collection",
   );
 
-  const ownedNfts = useOwnedNFTs(collectionContract, address || "");
-  const networkMismatch = useNetworkMismatch();
-  const [, switchNetwork] = useNetwork();
+  const ownedNfts = useOwnedNFTs(collectionContract, address);
+  const checkNetwork = useVerifyNetwork({network});
 
   const {
     mutate: createDirectListing,
     isLoading: isLoadingDirect,
     error: errorDirect,
+    isSuccess: successDirect,
   } = useCreateDirectListing(marketplaceContract);
 
   const {
     mutate: createAuctionListing,
     isLoading: isLoadingAuction,
     error: errorAuction,
+    isSuccess: successAuction,
   } = useCreateAuctionListing(marketplaceContract);
 
-  // This function gets called when the form is submitted.
-  // The user has provided:
-  // - contract address
-  // - token id
-  // type of listing (either auction or direct)
-  // price of the NFT
+  /**
+   * This function gets called when the form is submitted.
+   * The user has provided:
+   * - contract address
+   * - token id
+   * type of listing (either auction or direct)
+   * price of the NFT
+   * </code>
+   * @param e - React.FormEvent<HTMLFormElement>
+   * @returns a promise.
+   */
   async function handleCreateListing(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (networkMismatch) {
-      switchNetwork && switchNetwork(network);
+    checkNetwork();
 
-      return;
-    }
+    if (!selectedNft) return;
 
     const target = e.target as typeof e.target & {
       elements: {
@@ -69,73 +73,82 @@ function CreatePage({}: Props) {
       };
     };
 
-    if (!selectedNft) return;
-
     const {listingType, price} = target.elements;
 
-    if (listingType.value === "directListing") {
-      createDirectListing(
-        {
-          assetContractAddress: process.env.NEXT_PUBLIC_COLLECTION_CONTRACT!,
-          tokenId: selectedNft.metadata.id,
-          currencyContractAddress: NATIVE_TOKEN_ADDRESS,
-          listingDurationInSeconds: 60 * 60 * 24 * 7, // 1 week
-          quantity: 1,
-          buyoutPricePerToken: price.value,
-          startTimestamp: new Date(),
-        },
-        {
-          onSuccess(data, variables, context) {
-            // eslint-disable-next-line no-console
-            console.log("SUCCESS", data, variables, context);
-            router.push("/");
+    switch (listingType.value) {
+      case "directListing":
+        createDirectListing(
+          {
+            assetContractAddress: process.env.NEXT_PUBLIC_COLLECTION_CONTRACT!,
+            tokenId: selectedNft.metadata.id,
+            currencyContractAddress: NATIVE_TOKEN_ADDRESS,
+            listingDurationInSeconds: 60 * 60 * 24 * 7, // 1 week
+            quantity: 1,
+            buyoutPricePerToken: price.value,
+            startTimestamp: new Date(),
           },
-          onError(error, variables, context) {
-            // eslint-disable-next-line no-console
-            console.log("ERROR", error, variables, context);
+          {
+            onSuccess() {
+              toast.success("Created Listing successfully!", {style: {fontWeight: "bold"}});
+              redirect({path: "/"});
+            },
+            onError(error, variables, context) {
+              toast.error("Error, look at the console!", {style: {fontWeight: "bold"}});
+              // eslint-disable-next-line no-console
+              console.log({ERROR: {error, variables, context}});
+            },
           },
-        },
-      );
-    }
+        );
+        break;
 
-    if (listingType.value === "auctionListing") {
-      createAuctionListing(
-        {
-          assetContractAddress: process.env.NEXT_PUBLIC_COLLECTION_CONTRACT!,
-          tokenId: selectedNft.metadata.id,
-          currencyContractAddress: NATIVE_TOKEN_ADDRESS,
-          listingDurationInSeconds: 60 * 60 * 24 * 7, // 1 week
-          quantity: 1,
-          buyoutPricePerToken: price.value,
-          startTimestamp: new Date(),
-          reservePricePerToken: 0,
-        },
-        {
-          onSuccess(data, variables, context) {
-            // eslint-disable-next-line no-console
-            console.log("SUCCESS", data, variables, context);
-            router.push("/");
+      case "auctionListing":
+        createAuctionListing(
+          {
+            assetContractAddress: process.env.NEXT_PUBLIC_COLLECTION_CONTRACT!,
+            tokenId: selectedNft.metadata.id,
+            currencyContractAddress: NATIVE_TOKEN_ADDRESS,
+            listingDurationInSeconds: 60 * 60 * 24 * 7, // 1 week
+            quantity: 1,
+            buyoutPricePerToken: price.value,
+            startTimestamp: new Date(),
+            reservePricePerToken: 0,
           },
-          onError(error, variables, context) {
-            // eslint-disable-next-line no-console
-            console.log("ERROR", error, variables, context);
+          {
+            onSuccess() {
+              toast.success("Created Auction successfully!");
+              redirect({path: "/"});
+            },
+            onError(error, variables, context) {
+              toast.error("Error, look at the console!");
+              // eslint-disable-next-line no-console
+              console.log({ERROR: {error, variables, context}});
+            },
           },
-        },
-      );
+        );
+
+      default:
+        break;
     }
   }
 
   return (
-    <div>
+    <div className="p-10 pt-2">
       <Head>
         <title>List Item</title>
       </Head>
-      {!address ? (
+      {!address || ownedNfts.isLoading ? (
         <div className="flex items-center justify-center">
           <Loading />
         </div>
+      ) : ownedNfts.data?.length === 0 ? (
+        <div className="flex flex-col items-center ">
+          <p className="font-bold text-2xl">You do not own any nft :(</p>
+          <Link className="text-blue-500 cursor-pointer" href="/">
+            Go to the marketplace
+          </Link>
+        </div>
       ) : (
-        <div className="p-10 pt-2">
+        <div className="">
           <h1 className="text-4xl font-bold">List an Item</h1>
           <h2 className="text-xl font-semibold pt-5">Select an Item you would like to Sell</h2>
 
@@ -185,14 +198,18 @@ function CreatePage({}: Props) {
                   <input className="bg-gray-100 p-5" name="price" placeholder="0.05" type="text" />
                 </div>
                 <button
-                  className="flex justify-center bg-blue-600 text-white rounded-lg p-4 mt-8"
-                  disabled={isLoadingAuction || isLoadingDirect}
+                  className={`flex justify-center  text-white rounded-lg p-4 mt-8 ${
+                    successAuction || successDirect ? "bg-green-600" : "bg-blue-600"
+                  }`}
+                  disabled={isLoadingAuction || isLoadingDirect || successAuction || successDirect}
                   type="submit"
                 >
                   {isLoadingAuction || isLoadingDirect ? (
                     <Loading text="Processing..." textColor="text-white" />
                   ) : errorAuction || errorDirect ? (
                     "Error, try again!"
+                  ) : successAuction || successDirect ? (
+                    "Success!"
                   ) : (
                     "Create Listing"
                   )}
@@ -202,6 +219,7 @@ function CreatePage({}: Props) {
           )}
         </div>
       )}
+      <Toaster />
     </div>
   );
 }

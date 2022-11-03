@@ -11,7 +11,7 @@ type Props = {};
 function AddItemPage({}: Props) {
   const router = useRouter();
   const address = useAddress();
-  const [preview, setPreview] = useState<string>();
+  const [previewImage, setPreviewImage] = useState<string>();
   const [image, setImage] = useState<File>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addButton, setAddButton] = useState<{success: boolean; msg: string; bgColor: string}>({
@@ -24,9 +24,10 @@ function AddItemPage({}: Props) {
 
   async function mintNft(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // todo refactor this
 
     if (!contract || !address) {
-      alert("Make sure you are connected to your wallet");
+      alert("Make sure you are connected with your wallet");
 
       return;
     }
@@ -76,6 +77,20 @@ function AddItemPage({}: Props) {
     }
   }
 
+  if (address !== process.env.NEXT_PUBLIC_COLLECTION_OWNER) {
+    return (
+      <div className="p-10 flex flex-col items-center">
+        <Head>
+          <title>Unauthorized</title>
+        </Head>
+        <p className="font-bold text-3xl">
+          You do not have permission to add an item to the collection :&#40;
+        </p>
+        <p className="font-bold text-2xl">Ask the owner for permission</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Head>
@@ -95,7 +110,7 @@ function AddItemPage({}: Props) {
             className="border object-contain"
             height={300}
             priority={false}
-            src={preview || "https://links.papareact.com/ucj"}
+            src={previewImage || "https://links.papareact.com/ucj"}
             width={300}
           />
 
@@ -125,7 +140,7 @@ function AddItemPage({}: Props) {
               onChange={(e) => {
                 // todo: refactor
                 if (e.target.files?.[0]) {
-                  setPreview(URL.createObjectURL(e.target.files[0]));
+                  setPreviewImage(URL.createObjectURL(e.target.files[0]));
                   setImage(e.target.files[0]);
                 }
               }}
