@@ -4,7 +4,7 @@ import type {AppProps} from "next/app";
 import {ThirdwebProvider} from "@thirdweb-dev/react";
 
 import network from "../utils/network";
-import Layout from "../components/Layout";
+import Layout from "../components/ui/Layout";
 
 export default function App({Component, pageProps}: AppProps) {
   return (

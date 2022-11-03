@@ -58,7 +58,6 @@ function Header({}: Props) {
               alt="Thirdweb Logo"
               className="h-full w-full object-contain"
               height={100}
-              priority={false}
               src="https://links.papareact.com/bdb"
               width={100}
             />

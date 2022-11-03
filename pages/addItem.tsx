@@ -4,7 +4,7 @@ import Image from "next/image";
 import {useRouter} from "next/router";
 import Head from "next/head";
 
-import Loading from "../components/Loading";
+import Loading from "../components/ui/Loading";
 
 type Props = {};
 

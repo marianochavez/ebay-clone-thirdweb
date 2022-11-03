@@ -2,7 +2,7 @@ import {useActiveListings, useContract} from "@thirdweb-dev/react";
 import Head from "next/head";
 
 import ListingCard from "../components/ListingCard";
-import Loading from "../components/Loading";
+import Loading from "../components/ui/Loading";
 
 export default function HomePage() {
   const {contract} = useContract(process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT, "marketplace");

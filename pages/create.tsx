@@ -13,7 +13,7 @@ import Link from "next/link";
 import {toast, Toaster} from "react-hot-toast";
 
 import network from "../utils/network";
-import Loading from "../components/Loading";
+import Loading from "../components/ui/Loading";
 import useVerifyNetwork from "../hooks/useVerifyNetwork";
 import {redirect} from "../utils/redirect";
 
