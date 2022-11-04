@@ -39,10 +39,12 @@ function Header({}: Props) {
           <p className="headerLink">Sell</p>
           <p className="headerLink">Watchlist</p>
 
-          <Link className="flex items-center text-blue-500 hover:link" href="/addItem">
-            Add to inventory
-            <ChevronDownIcon className="h-4" />
-          </Link>
+          {address && (
+            <Link className="flex items-center text-blue-500 hover:link" href="/addItem">
+              Add to inventory
+              <ChevronDownIcon className="h-4" />
+            </Link>
+          )}
 
           <BellIcon className="h-6 w-6" />
           <ShoppingCartIcon className="h-6 w-6" />

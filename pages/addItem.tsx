@@ -1,44 +1,34 @@
 import React, {useState} from "react";
 import {useAddress, useContract} from "@thirdweb-dev/react";
 import Image from "next/image";
-import {useRouter} from "next/router";
 import Head from "next/head";
+import toast, {Toaster} from "react-hot-toast";
 
-import Loading from "../components/ui/Loading";
+import {redirect} from "../utils/redirect";
 
 type Props = {};
 
 function AddItemPage({}: Props) {
-  const router = useRouter();
   const address = useAddress();
   const [previewImage, setPreviewImage] = useState<string>();
   const [image, setImage] = useState<File>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [addButton, setAddButton] = useState<{success: boolean; msg: string; bgColor: string}>({
-    success: false,
-    msg: "Add/Mint Item",
-    bgColor: "bg-blue-600",
-  });
+  const [isLoading, setisLoading] = useState(false);
 
   const {contract} = useContract(process.env.NEXT_PUBLIC_COLLECTION_CONTRACT, "nft-collection");
 
   async function mintNft(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // todo refactor this
-
     if (!contract || !address) {
-      alert("Make sure you are connected with your wallet");
+      toast.error("Make sure you are connected with your wallet");
 
       return;
     }
 
     if (!image) {
-      alert("Please select an image");
+      toast.error("Please select an image");
 
       return;
     }
-
-    setIsLoading(true);
 
     const target = e.target as typeof e.target & {
       name: {value: string};
@@ -51,30 +41,24 @@ function AddItemPage({}: Props) {
       image: image,
     };
 
-    try {
-      // transaction
-      const tx = await contract.mintTo(address, metadata);
+    setisLoading(true);
+    toast
+      .promise(
+        contract.mintTo(address, metadata),
+        {
+          loading: "Processing...",
+          success: "Item minted!",
+          error: "Item could not be minted!\nLook at the console",
+        },
+        {duration: 5000, style: {fontWeight: "bold", padding: "16px"}},
+      )
+      .then(() => redirect({path: "/"}))
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.log(error);
 
-      const receipt = tx.receipt; // the transaction receipt
-      const tokenId = tx.id; // the id of the NFT minted
-      const nft = await tx.data(); // (optional) fetch details of minted NFT
-
-      setIsLoading(false);
-      setAddButton({success: true, msg: "Item minted!", bgColor: "bg-green-500"});
-      // eslint-disable-next-line no-console
-      console.log(receipt, tokenId, nft);
-      setTimeout(() => {
-        router.push("/");
-      }, 3000);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error);
-      setAddButton({success: false, msg: "Error, try again!", bgColor: "bg-red-500"});
-      setTimeout(() => {
-        setAddButton({success: false, msg: "Add/Mint Item", bgColor: "bg-blue-600"});
-      }, 4000);
-      setIsLoading(false);
-    }
+        setisLoading(false);
+      });
   }
 
   if (address !== process.env.NEXT_PUBLIC_COLLECTION_OWNER) {
@@ -86,7 +70,7 @@ function AddItemPage({}: Props) {
         <p className="font-bold text-3xl">
           You do not have permission to add an item to the collection :&#40;
         </p>
-        <p className="font-bold text-2xl">Ask the owner for permission</p>
+        <p className="font-bold text-2xl">Is under construction...</p>
       </div>
     );
   }
@@ -135,10 +119,10 @@ function AddItemPage({}: Props) {
 
             <label className="font-light">Image of the Item</label>
             <input
+              accept=".png .jpeg .webp ."
               className="pb-10"
               type="file"
               onChange={(e) => {
-                // todo: refactor
                 if (e.target.files?.[0]) {
                   setPreviewImage(URL.createObjectURL(e.target.files[0]));
                   setImage(e.target.files[0]);
@@ -147,15 +131,16 @@ function AddItemPage({}: Props) {
             />
 
             <button
-              className={`${addButton.bgColor} font-bold text-white rounded-full py-4 px-10 w-56 md:mt-auto mx-auto md:ml-auto`}
-              disabled={isLoading || addButton.success}
+              className="bg-blue-600 font-bold text-white rounded-full py-4 px-10 w-56 md:mt-auto mx-auto md:ml-auto disabled:bg-gray-400"
+              disabled={isLoading}
               type="submit"
             >
-              {isLoading ? <Loading text="Processing..." textColor="text-white" /> : addButton.msg}
+              Add/Mint Item
             </button>
           </form>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }
