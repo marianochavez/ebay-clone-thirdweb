@@ -76,12 +76,12 @@ function Header({}: Props) {
           <input className="flex-1 outline-none" placeholder="Search for Anything" type="text" />
         </div>
 
-        <button className="hidden sm:inline bg-blue-600 text-white px-5 md:px-10  border-2 border-blue-600 text-sm">
+        <button className="hidden sm:inline bg-blue-600 py-2 text-white px-5 md:px-10  border-2 border-blue-600 text-sm">
           Search
         </button>
 
         <Link href="/create">
-          <button className="border-2 border-blue-600 px-5 md:px-10 text-blue-600 hover:bg-blue-600/50 hover:text-white text-sm">
+          <button className="border-2 border-blue-600 py-2 px-5 md:px-10 text-blue-600 hover:bg-blue-600/50 hover:text-white text-sm">
             List Item
           </button>
         </Link>
