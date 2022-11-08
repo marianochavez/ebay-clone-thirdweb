@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {useAddress, useContract} from "@thirdweb-dev/react";
+import {useAddress, useContract, useIsAddressRole} from "@thirdweb-dev/react";
 import Image from "next/image";
 import Head from "next/head";
 import toast, {Toaster} from "react-hot-toast";
@@ -15,6 +15,8 @@ function AddItemPage({}: Props) {
   const [isLoading, setisLoading] = useState(false);
 
   const {contract} = useContract(process.env.NEXT_PUBLIC_COLLECTION_CONTRACT, "nft-collection");
+
+  const isMember = useIsAddressRole(contract, "minter", address);
 
   async function mintNft(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,14 +63,14 @@ function AddItemPage({}: Props) {
       });
   }
 
-  if (address !== process.env.NEXT_PUBLIC_COLLECTION_OWNER) {
+  if (!isMember) {
     return (
       <div className="p-10 flex flex-col items-center">
         <Head>
           <title>Unauthorized</title>
         </Head>
         <p className="font-bold text-3xl">
-          You do not have permission to add an item to the collection :&#40;
+          You do not have permission to add an item to the collection.
         </p>
         <p className="font-bold text-2xl">Is under construction...</p>
       </div>
@@ -119,7 +121,7 @@ function AddItemPage({}: Props) {
 
             <label className="font-light">Image of the Item</label>
             <input
-              accept=".png .jpeg .webp ."
+              accept="image/*"
               className="pb-10"
               type="file"
               onChange={(e) => {

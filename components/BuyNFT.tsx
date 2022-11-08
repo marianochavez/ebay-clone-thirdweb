@@ -51,7 +51,7 @@ const BuyNFT = ({listingId, listing, contract}: BuyNFTProps) => {
         <p>{listing!.type === ListingType.Direct ? "Direct Listing" : "Auction Listing"}</p>
 
         <p className="font-bold ">Buy it Now Price</p>
-        <p className="text-4xl font-bold">
+        <p className="text-lg font-bold">
           {listing!.buyoutCurrencyValuePerToken.displayValue}{" "}
           {listing!.buyoutCurrencyValuePerToken.symbol}
         </p>
