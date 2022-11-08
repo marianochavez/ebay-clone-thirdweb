@@ -1,22 +1,19 @@
 /* eslint-disable no-console */
 import {useRouter} from "next/router";
-import {MediaRenderer, useContract, useListing} from "@thirdweb-dev/react";
+import {MediaRenderer, useListing} from "@thirdweb-dev/react";
 import {UserCircleIcon} from "@heroicons/react/24/solid";
 import {Toaster} from "react-hot-toast";
 import Head from "next/head";
+import {useContext} from "react";
 
 import Loading from "../../components/ui/Loading";
 import BuyNFT from "../../components/BuyNFT";
+import {WalletContext} from "../../context/WalletContext";
 
 function ListingPage() {
   const router = useRouter();
   const {listingId} = router.query as {listingId: string};
-
-  const {contract: marketplaceContract} = useContract(
-    process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT,
-    "marketplace",
-  );
-
+  const {marketplaceContract} = useContext(WalletContext);
   const {data: listing, isLoading, error} = useListing(marketplaceContract, listingId);
 
   if (isLoading) {

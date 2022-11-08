@@ -1,12 +1,14 @@
-import {useActiveListings, useContract} from "@thirdweb-dev/react";
+import {useActiveListings} from "@thirdweb-dev/react";
 import Head from "next/head";
+import {useContext} from "react";
 
 import ListingCard from "../components/ListingCard";
 import Loading from "../components/ui/Loading";
+import {WalletContext} from "../context/WalletContext";
 
 export default function HomePage() {
-  const {contract} = useContract(process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT, "marketplace");
-  const {data: listings, isLoading: loadingListings} = useActiveListings(contract);
+  const {marketplaceContract} = useContext(WalletContext);
+  const {data: listings, isLoading: loadingListings} = useActiveListings(marketplaceContract);
 
   return (
     <div>

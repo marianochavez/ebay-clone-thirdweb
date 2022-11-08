@@ -1,9 +1,7 @@
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import {NFT, NATIVE_TOKEN_ADDRESS} from "@thirdweb-dev/sdk";
 import {
   MediaRenderer,
-  useAddress,
-  useContract,
   useCreateAuctionListing,
   useCreateDirectListing,
   useOwnedNFTs,
@@ -16,20 +14,13 @@ import network from "../utils/network";
 import Loading from "../components/ui/Loading";
 import useVerifyNetwork from "../hooks/useVerifyNetwork";
 import {redirect} from "../utils/redirect";
+import {WalletContext} from "../context/WalletContext";
 
 type Props = {};
 
 function CreatePage({}: Props) {
-  const address = useAddress();
+  const {address, collectionContract, marketplaceContract} = useContext(WalletContext);
   const [selectedNft, setSelectedNft] = useState<NFT>();
-  const {contract: marketplaceContract} = useContract(
-    process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT,
-    "marketplace",
-  );
-  const {contract: collectionContract} = useContract(
-    process.env.NEXT_PUBLIC_COLLECTION_CONTRACT,
-    "nft-collection",
-  );
 
   const ownedNfts = useOwnedNFTs(collectionContract, address);
   const checkNetwork = useVerifyNetwork({network});

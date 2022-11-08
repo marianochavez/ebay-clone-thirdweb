@@ -1,26 +1,24 @@
-import React, {useState} from "react";
-import {useAddress, useContract, useIsAddressRole} from "@thirdweb-dev/react";
+import React, {useContext, useState} from "react";
+import {useIsAddressRole} from "@thirdweb-dev/react";
 import Image from "next/image";
 import Head from "next/head";
 import toast, {Toaster} from "react-hot-toast";
 
 import {redirect} from "../utils/redirect";
+import {WalletContext} from "../context/WalletContext";
 
 type Props = {};
 
 function AddItemPage({}: Props) {
-  const address = useAddress();
+  const {address, collectionContract} = useContext(WalletContext);
   const [previewImage, setPreviewImage] = useState<string>();
   const [image, setImage] = useState<File>();
   const [isLoading, setisLoading] = useState(false);
-
-  const {contract} = useContract(process.env.NEXT_PUBLIC_COLLECTION_CONTRACT, "nft-collection");
-
-  const isMember = useIsAddressRole(contract, "minter", address);
+  const isMember = useIsAddressRole(collectionContract, "minter", address);
 
   async function mintNft(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!contract || !address) {
+    if (!collectionContract || !address) {
       toast.error("Make sure you are connected with your wallet");
 
       return;
@@ -46,7 +44,7 @@ function AddItemPage({}: Props) {
     setisLoading(true);
     toast
       .promise(
-        contract.mintTo(address, metadata),
+        collectionContract.mintTo(address, metadata),
         {
           loading: "Processing...",
           success: "Item minted!",
